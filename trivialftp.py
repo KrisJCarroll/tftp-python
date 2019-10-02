@@ -98,7 +98,8 @@ def check_ack(packet, block):
     opcode = int.from_bytes(packet[0:2], byteorder='big')
     block_num = int.from_bytes(packet[2:4], byteorder='big')
     if opcode == OPCODES['ack'] and block_num == block:
-        print("\t[ACK] Block:", block_num)
+        return block_num
+    elif opcode == OPCODES['ack']:
         return block_num
     else:
         raise TypeError
