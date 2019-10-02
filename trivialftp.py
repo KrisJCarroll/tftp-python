@@ -55,7 +55,7 @@ OPCODES = {
     Create the packet for a RRQ as follows:
     OP   |  string  | pad | string | pad
     ------------------------------------
-   | 01  | filename |  0  | mode   | 0  |
+   |01/02| filename |  0  | mode   | 0  |
     ------------------------------------
 """
 def send_request(filename, mode):
@@ -83,9 +83,28 @@ def send_ack(packet):
     ack[1] = 4 # change opcode to 04
     s.sendto(ack, server)
 
+def check_ack(packet, block):
+    ack = bytearray(packet[0:4])
+    opcode = ack[0:1]
+    block_num = ack[2:3]
+    return int.from_bytes(opcode, byteorder='big') == OPCODES['ack'] and int.from_bytes(block_num, byteorder='big') == block
+
+def send_data(block, data):
+    packet = bytearray()
+
+    # opcode 03 for data
+    packet.append(0)
+    packet.append(3)
+
+    # block
+    packet.append(block.to_bytes(2, byteorder='big'))
+
+    packet += data
+    s.sendto(packet, server)
+
 def check_error(packet):
     data = bytearray(packet)
-    opcode = data[0:1]
+    opcode = data[0:2]
     return int.from_bytes(opcode, byteorder='big') == OPCODES["error"]
 
 def read(filename):
@@ -109,7 +128,19 @@ def read(filename):
     print("\t{} bytes received.".format(size))
 
 def write(filename):
-    print("Not ready for this yet.")
+    file = open(filename, "rb")
+    byte_data = file.read()
+    block = 0
+    while True:
+        packet, address = s.recvfrom(TERMINATE_LENGTH)
+        if check_ack(packet, block):
+            data = byte_data[block:block+512]
+            send_data(block, data)
+            if len(data) < 512 or block > 65535:
+                break
+        break
+            
+
             
 
 def main():
