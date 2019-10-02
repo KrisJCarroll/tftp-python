@@ -147,9 +147,10 @@ def write(filename):
     while True:
         packet, address = s.recvfrom(TERMINATE_LENGTH)
         next_block = check_ack(packet, block)
+        byte_data = file.read()
         if next_block:
-            block += 1
-            data = file.read(512)
+            block = next_block + 1
+            data = byte_data[block*512 : (block*512) + 512]
             send_data(block, data)
             if len(data) < 512 or block >= 65535:
                 break
