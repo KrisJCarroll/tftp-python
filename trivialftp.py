@@ -140,12 +140,12 @@ def read(filename):
 
 def write(filename):
     file = open(filename, "rb")
-    byte_data = file.read()
     block = 0
     while True:
         packet, address = s.recvfrom(TERMINATE_LENGTH)
         if check_ack(packet, block):
-            data = byte_data[block:block+512]
+            block += 1
+            data = file.read(512)
             send_data(block, data)
             if len(data) < 512 or block > 65535:
                 break
