@@ -97,21 +97,19 @@ def send_ack(packet):
 def check_ack(packet, block):
     opcode = int.from_bytes(packet[0:2], byteorder='big')
     block_num = int.from_bytes(packet[2:4], byteorder='big')
-    if opcode == OPCODES['ack']:
+    if opcode == OPCODES['ack'] and block_num == block:
         print("\t[ACK] Block:", block_num)
-        return block_num
+        return block_num + 1
     else:
-        return False
+        raise TypeError
 
-def send_data(block, data):
-    packet = bytearray()
+def send_data(ack, block, data):
+    packet = bytearray(ack[0:2])
+    packet[1] = 3
 
-    # opcode 03 for data
-    packet.append(0)
-    packet.append(3)
 
     # block
-    packet.append(block)
+    packet += block.to_bytes(2, byteorder='big')
 
     packet += data
     s.sendto(packet, server)
@@ -144,16 +142,14 @@ def read(filename):
 def write(filename):
     file = open(filename, "rb")
     block = 0
+    byte_data = file.read()
     while True:
         packet, address = s.recvfrom(TERMINATE_LENGTH)
-        next_block = check_ack(packet, block)
-        byte_data = file.read()
-        if next_block:
-            block = next_block + 1
-            data = byte_data[block*512 : (block*512) + 512]
-            send_data(block, data)
-            if len(data) < 512 or block >= 65535:
-                break
+        block = check_ack(packet, block)
+        data = byte_data[block*512 : (block*512) + 512]
+        send_data(packet, block, data)
+        if len(data) < 512 or block >= 65535:
+            break
             
 
             
