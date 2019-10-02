@@ -95,10 +95,13 @@ def send_ack(packet):
     s.sendto(ack, server)
 
 def check_ack(packet, block):
-    ack = bytearray(packet[0:4])
-    opcode = int.from_bytes(ack[0:2], byteorder='big')
-    block_num = int.from_bytes(ack[2:4], byteorder='big')
-    return opcode == OPCODES['ack'] and block_num == block
+    opcode = int.from_bytes(packet[0:2], byteorder='big')
+    block_num = int.from_bytes(packet[2:4], byteorder='big')
+    if opcode == OPCODES['ack']:
+        print("\t[ACK] Block:", block_num)
+        return block_num
+    else:
+        return False
 
 def send_data(block, data):
     packet = bytearray()
@@ -143,11 +146,12 @@ def write(filename):
     block = 0
     while True:
         packet, address = s.recvfrom(TERMINATE_LENGTH)
-        if check_ack(packet, block):
+        next_block = check_ack(packet, block)
+        if next_block:
             block += 1
             data = file.read(512)
             send_data(block, data)
-            if len(data) < 512 or block > 65535:
+            if len(data) < 512 or block >= 65535:
                 break
             
 
