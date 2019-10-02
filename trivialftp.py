@@ -126,7 +126,7 @@ def read(filename):
         size += len(packet[4:])
         if check_error(packet):
             errno = int.from_bytes(packet[2:4], byteorder='big')
-            print("ERROR(server): ERRNO[{}] MESSAGE = {}".format(errno, ))
+            print("ERROR(server): ERRNO[{}] MESSAGE = {}".format(errno, TFTP_ERRORS[errno]))
             return False
 
         send_ack(packet)
