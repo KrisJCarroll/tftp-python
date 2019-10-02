@@ -25,7 +25,7 @@ SERVER_PORT = args.sp
 print("Server port:", SERVER_PORT)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.settimeout(2) # 2 second timeout
+s.settimeout(5) # 2 second timeout
 server = (SERVER_ADDRESS, SERVER_PORT)
 
 if args.m == 'r':
@@ -99,18 +99,16 @@ def check_ack(packet, block):
     block_num = int.from_bytes(packet[2:4], byteorder='big')
     if opcode == OPCODES['ack'] and block_num == block:
         print("\t[ACK] Block:", block_num)
-        return block_num + 1
+        return block_num
     else:
         raise TypeError
 
 def send_data(ack, block, data):
     packet = bytearray(ack[0:2])
     packet[1] = 3
-
-
-    # block
+    # adding block number
     packet += block.to_bytes(2, byteorder='big')
-
+    # adding data
     packet += data
     s.sendto(packet, server)
 
@@ -147,6 +145,7 @@ def write(filename):
         packet, address = s.recvfrom(TERMINATE_LENGTH)
         block = check_ack(packet, block)
         data = byte_data[block*512 : (block*512) + 512]
+        block += 1
         send_data(packet, block, data)
         if len(data) < 512 or block >= 65535:
             break
