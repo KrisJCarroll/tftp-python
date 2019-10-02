@@ -96,9 +96,9 @@ def send_ack(packet):
 
 def check_ack(packet, block):
     ack = bytearray(packet[0:4])
-    opcode = ack[0:1]
-    block_num = ack[2:3]
-    return int.from_bytes(opcode, byteorder='big') == OPCODES['ack'] and int.from_bytes(block_num, byteorder='big') == block
+    opcode = int.from_bytes(ack[0:2], byteorder='big')
+    block_num = int.from_bytes(ack[2:4], byteorder='big')
+    return opcode == OPCODES['ack'] and block_num == block
 
 def send_data(block, data):
     packet = bytearray()
