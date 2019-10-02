@@ -51,6 +51,17 @@ OPCODES = {
     'error' : 5
 }
 
+TFTP_ERRORS = {
+    0 : "Undefined error.",
+    1 : "File not found.",
+    2 : "Access violation.",
+    3 : "Disk full or allocation exceeded.",
+    4 : "Illegal TFTP operation.",
+    5 : "Unknown TID.",
+    6 : "File already exists.",
+    7 : "No such user.",
+}
+
 """ 
     Create the packet for a RRQ as follows:
     OP   |  string  | pad | string | pad
@@ -114,8 +125,8 @@ def read(filename):
         packet, address = s.recvfrom(TERMINATE_LENGTH)
         size += len(packet[4:])
         if check_error(packet):
-            errno = int.from_bytes(packet[2:4])
-            print("Error from server with errno:", errno)
+            errno = int.from_bytes(packet[2:4], byteorder='big')
+            print("ERROR(server): ERRNO[{}] MESSAGE = {}".format(errno, ))
             return False
 
         send_ack(packet)
