@@ -7,8 +7,6 @@ parser.add_argument("-a", help="supply a destination address")
 parser.add_argument("-f", help="supply a filename in string format")
 parser.add_argument("-p", type=int, help="supply client port information")
 parser.add_argument("-sp", type=int, help="supply server port information")
-#parser.add_argument("-p", type=int, choices=range(5000,65535), metavar="[5000-65535]", help="supply client port information")
-#parser.add_argument("-sp", type=int, choices=range(5000,65535), metavar="[5000-65535]", help="supply server port information")
 parser.add_argument("-m", choices=['r', 'w'], help="choose either (r)ead or (w)rite mode")
 
 args = parser.parse_args()
