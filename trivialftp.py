@@ -108,7 +108,7 @@ def send_data(block, data):
     packet.append(3)
 
     # block
-    packet.append(block.to_bytes(2, byteorder='big'))
+    packet.append(block)
 
     packet += data
     s.sendto(packet, server)
@@ -149,7 +149,6 @@ def write(filename):
             send_data(block, data)
             if len(data) < 512 or block > 65535:
                 break
-        break
             
 
             
