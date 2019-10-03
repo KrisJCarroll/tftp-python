@@ -148,6 +148,9 @@ def read(filename):
         except socket.timeout:
             send_ack(packet)
             timeouts += 1
+        except:
+            print("Connection with server closed.")
+            break
     # All done, clean up and let everyone know
     file.close()
     s.close()
