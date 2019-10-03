@@ -25,7 +25,7 @@ SERVER_PORT = args.sp
 print("Server port:", SERVER_PORT)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.settimeout(5) # 2 second timeout
+s.settimeout(1) # 2 second timeout
 server = (SERVER_ADDRESS, SERVER_PORT)
 
 if args.m == 'r':
@@ -121,20 +121,31 @@ def check_error(packet):
 def read(filename):
     file = open(filename, "wb")
     size = 0
-    while True:
-        packet, address = s.recvfrom(TERMINATE_LENGTH)
-        size += len(packet[4:])
-        if check_error(packet):
-            errno = int.from_bytes(packet[2:4], byteorder='big')
-            print("ERROR(server): ERRNO[{}] MESSAGE = {}".format(errno, TFTP_ERRORS[errno]))
-            return False
+    timeouts = 0
+    block = 1
+    while timeouts < 2:
+        try:
+            packet, address = s.recvfrom(TERMINATE_LENGTH)
+            size += len(packet[4:])
+            if check_error(packet):
+                errno = int.from_bytes(packet[2:4], byteorder='big')
+                print("ERROR(server): ERRNO[{}] MESSAGE = {}".format(errno, TFTP_ERRORS[errno]))
+                return False
+            if int.from_bytes(packet[2:4], byteorder='big') == block:
+                timeouts = 0
+                block += 1
+                send_ack(packet)
+                data = packet[4:] # grab the data
+                file.write(data)
 
-        send_ack(packet)
-        data = packet[4:] # grab the data
-        file.write(data)
-
-        if len(packet) < TERMINATE_LENGTH:
-            break
+            if len(packet) < TERMINATE_LENGTH:
+                break
+        except socket.timeout:
+            send_ack(packet)
+            timeouts += 1
+    # All done, clean up and let everyone know
+    file.close()
+    s.close()
     print("Finished reading {} from {}:{}".format(FILENAME, SERVER_ADDRESS, SERVER_PORT))
     print("\t{} bytes received.".format(size))
 
@@ -150,6 +161,9 @@ def write(filename):
         send_data(packet, block, data)
         if len(data) < 512 or block >= 65535:
             break
+    print("Finished writing {} to {}:{}".format(FILENAME, SERVER_ADDRESS, SERVER_PORT))
+    file.close()
+    s.close()
             
 
             
