@@ -137,6 +137,11 @@ def read(filename):
                 send_ack(packet)
                 data = packet[4:] # grab the data
                 file.write(data)
+            else:
+                timeouts += 1
+                old_packet = bytearray(packet[0:2])
+                old_packet += block.to_bytes(2, byteorder='big')
+                send_ack(packet)
 
             if len(packet) < TERMINATE_LENGTH:
                 break
