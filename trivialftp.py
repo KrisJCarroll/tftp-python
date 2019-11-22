@@ -47,8 +47,8 @@ else: # should never get here since choices=['r', 'w'] was specified for args.m 
     print("No mode provided, quitting.")
     raise SystemExit
 
-print("Connecting to {}:{}".format(SERVER_ADDRESS, SERVER_PORT))
-s.connect((SERVER_ADDRESS, SERVER_PORT))
+print("Connecting to {}:{}".format(server))
+s.connect((server))
 
 TERMINATE_LENGTH = 512 + 4 # 512 bytes of data, 4 bytes header = 516 bytes maximum packet size
 ENCODE_MODE = 'netascii' # we're not expected to change this
