@@ -48,7 +48,7 @@ else: # should never get here since choices=['r', 'w'] was specified for args.m 
     raise SystemExit
 
 print("Connecting to {}:{}".format(server))
-s.connect((server))
+s.connect(server)
 
 TERMINATE_LENGTH = 512 + 4 # 512 bytes of data, 4 bytes header = 516 bytes maximum packet size
 ENCODE_MODE = 'netascii' # we're not expected to change this
